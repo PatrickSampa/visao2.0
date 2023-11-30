@@ -11,8 +11,8 @@ export class GetUserResponsibleIdController {
       return response.status(200).json(IdResponsibleUser);
     } catch (error) {
       return response.status(401).json({
-        message: 'Unexpected error',
+        message: error || 'Unexpected error',
       });
     }
   }
-}
+} 
