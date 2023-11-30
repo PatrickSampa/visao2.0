@@ -7,11 +7,15 @@ export class GetInformationFromSapiensForSamirController {
   ) {}
 
   async handle(request: Request, response: Response): Promise<Response> {
-    const { token } = request.body;
+    const { email, password, etiqueta_sapiens } = request.body;
 
     try {
       const responseInfo =
-        await this.getInformationFromSapiensForSamirUseCase.execute(token);
+        await this.getInformationFromSapiensForSamirUseCase.execute(
+          email,
+          password,
+          etiqueta_sapiens,
+        );
       return response.status(200).json(responseInfo);
     } catch (erro) {
       return response.status(401).json({

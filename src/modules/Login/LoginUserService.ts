@@ -10,6 +10,6 @@ export class LoginUserCase {
       username: email,
       password: password,
     });
-    return response.data;
+    return response.data.token;
   }
 }
