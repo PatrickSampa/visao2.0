@@ -11,4 +11,4 @@ app.get('/', (req, resp) => {
   resp.send('Hellow World');
 });
 
-app.listen(PORT, () => console.log('VISAO RUNNING INM PORT ' + PORT));
+app.listen(PORT, () => console.log('VISAO RUNNING IN PORT ' + PORT));
