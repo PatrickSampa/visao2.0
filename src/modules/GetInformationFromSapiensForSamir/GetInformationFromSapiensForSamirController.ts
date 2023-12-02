@@ -18,8 +18,8 @@ export class GetInformationFromSapiensForSamirController {
         );
       return response.status(200).json(responseInfo);
     } catch (erro) {
-      return response.status(401).json({
-        message: 'Unexpected error',
+      return response.status(400).json({
+        message: 'ERRO AO FAZER A TRIAGEM SAPIENS',
       });
     }
   }

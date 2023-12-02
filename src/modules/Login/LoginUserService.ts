@@ -1,15 +1,11 @@
+import { loginAxios } from '../../Axios_Request/Post';
 import { LoginDTO } from '../../DTO/ILoginDTO';
-import axios from 'axios';
+import { requestUrlLogin } from '../SapiensOperations/Request_Url';
 
 export class LoginUserCase {
   async execute(data: LoginDTO): Promise<string> {
-    const { email, password } = data;
-    const URL = 'https://supersapiensbackend.agu.gov.br/auth/ldap_get_token';
-
-    const response = await axios.post(URL, {
-      username: email,
-      password: password,
-    });
-    return response.data.token;
+    const URL = await requestUrlLogin.handle();
+    const bearenToken = await loginAxios.handle(data, URL);
+    return bearenToken;
   }
 }

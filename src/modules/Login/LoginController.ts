@@ -4,14 +4,20 @@ import { LoginUserCase } from './LoginUserService';
 export class LoginController {
   constructor(private loginUserCase: LoginUserCase) {}
 
-  async handle(request: Request, response: Response): Promise<Response> {
-    const { email, password } = request.body;
+  async handle(
+    request: Request,
+    response: Response,
+  ): Promise<Response | unknown> {
+    const { username, password } = request.body;
     try {
-      const bearenToken = await this.loginUserCase.execute({ email, password });
+      const bearenToken = await this.loginUserCase.execute({
+        username,
+        password,
+      });
       return response.status(200).json(bearenToken);
     } catch (error) {
-      return response.status(401).json({
-        message: 'Unexpected error',
+      return response.status(400).json({
+        message: 'Usuario Super Sapiens Incorreto',
       });
     }
   }
