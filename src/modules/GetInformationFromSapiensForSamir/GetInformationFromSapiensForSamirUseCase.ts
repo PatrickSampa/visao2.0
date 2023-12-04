@@ -7,6 +7,7 @@ import { loginUserCase } from '../Login';
 import { getTarefaUseCase } from '../GetTarefa';
 import { ResponseProcess } from '../SapiensOperations/Response/ResponseProcess';
 import { getPastaUseCase } from '../GetPasta';
+import { ResponseFolder } from '../SapiensOperations/Response/ResponseFolder';
 
 export class GetInformationFromSapiensForSamirUseCase {
   async execute(
@@ -26,7 +27,17 @@ export class GetInformationFromSapiensForSamirUseCase {
       });
       for (let i = 0; i <= ProcessSapiens.length - 1; i++) {
         const processo_id = ProcessSapiens[i].processo.id;
-        const getPasta = getPastaUseCase.execute({ processo_id, limit, token });
+        const getArvoreDocumento: ResponseFolder =
+          await getPastaUseCase.execute({
+            processo_id,
+            limit,
+            token,
+          });
+
+        const objetoDosprev =
+          getArvoreDocumento[0].documento.componentesDigitais.length > 0;
+        console.log(getArvoreDocumento[0]);
+        return objetoDosprev;
       }
 
       /* const idDossprev =
@@ -51,7 +62,6 @@ export class GetInformationFromSapiensForSamirUseCase {
         paginaDosprevFormatada,
         '/html/body/div/p[2]/b',
       ); */
-      return getPasta;
     } catch (e) {
       throw new Error('ERRO AO FAZER A TRIAGEM SAPIENS');
     }
