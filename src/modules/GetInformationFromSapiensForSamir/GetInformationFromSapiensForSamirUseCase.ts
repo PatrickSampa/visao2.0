@@ -1,14 +1,16 @@
 //import axios from 'axios';
 import { getUserResponsibleIdUseCase } from '../GetUserResponsibleId';
 import { loginUserCase } from '../Login';
-//import { getXPathText } from '../../Help/GetTextoPorXPATH';
-//const { JSDOM } = require('jsdom');
+import { getXPathText } from '../../Help/GetTextoPorXPATH';
+const { JSDOM } = require('jsdom');
 //import { decodeBase64FileWithHash } from '../../Help/teste';
 import { getTarefaUseCase } from '../GetTarefa';
 import { ResponseProcess } from '../SapiensOperations/Response/ResponseProcess';
 import { getPastaUseCase } from '../GetPasta';
 import { ResponseFolder } from '../SapiensOperations/Response/ResponseFolder';
 import { uploudObservacaoUseCase } from '../UploudObservacao';
+import { uploadPaginaDosprevUseCase } from '../UploadPaginaDosprev';
+import { VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie } from '../../Help/VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie';
 
 export class GetInformationFromSapiensForSamirUseCase {
   async execute(
@@ -35,42 +37,85 @@ export class GetInformationFromSapiensForSamirUseCase {
             token,
           });
 
-        const objetoDosprev =
-          getArvoreDocumento[0].documento.componentesDigitais.length > 0;
+        if (getArvoreDocumento.length <= 0) {
+          await uploudObservacaoUseCase.execute(
+            [ProcessSapiens[0]],
+            'DOSPREV NÃO ENCONTRADO',
+            token,
+          );
+          continue;
+        }
 
-        if (!objetoDosprev) {
+        const objectDosPrevMaisAtual = getArvoreDocumento.find((Documento) => {
+          const movimento = Documento.descricao.split('.');
+          return movimento[0] == 'JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF';
+        });
+
+        if (
+          objectDosPrevMaisAtual == null ||
+          objectDosPrevMaisAtual == undefined ||
+          Object.keys(objectDosPrevMaisAtual).length == 0
+        ) {
+          await uploudObservacaoUseCase.execute(
+            [ProcessSapiens[0]],
+            'DOSPREV NÃO ENCONTRADO',
+            token,
+          );
+          continue;
+        }
+
+        if (objectDosPrevMaisAtual.documento.componentesDigitais.length <= 0) {
           await uploudObservacaoUseCase.execute(
             [ProcessSapiens[0]],
             'DOSPREV COM FALHA NA PESQUISA',
             token,
           );
+          continue;
         }
 
-        return ProcessSapiens[i];
+        const parginaDosprev = await uploadPaginaDosprevUseCase.execute(
+          objectDosPrevMaisAtual.documento.componentesDigitais[0].id,
+          token,
+        );
+
+        const xpaththInformacaoCabecalho = '/html/body/div/div[3]/p/strong';
+        const paginaDosprevFormatada = new JSDOM(parginaDosprev);
+        const informacaoDeCabeçalho = getXPathText(
+          paginaDosprevFormatada,
+          xpaththInformacaoCabecalho,
+        );
+
+        const informacaoDeCabecalhoNaoExiste = !informacaoDeCabeçalho;
+        if (informacaoDeCabecalhoNaoExiste) {
+          await uploudObservacaoUseCase.execute(
+            [ProcessSapiens[0]],
+            'DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE',
+            token,
+          );
+          continue;
+        }
+        console.log(
+          VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie(
+            informacaoDeCabeçalho,
+          ),
+        );
+
+        if (
+          0 >
+          VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie(
+            informacaoDeCabeçalho,
+          )
+        ) {
+          await uploudObservacaoUseCase.execute(
+            [ProcessSapiens[0]],
+            'DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE',
+            token,
+          );
+          continue;
+        }
+
+        return informacaoDeCabeçalho;
       }
-
-      /* const idDossprev =
-        responseArvoreDocumento.data.entities[0].documento
-          .componentesDigitais[0].id;
-
-      const dossieBody = await axios.get(
-        `https://supersapiensbackend.agu.gov.br/v1/administrativo/componente_digital/${idDossprev}/download?context=%7B%7D`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      const dosprevCriptografado = decodeBase64FileWithHash(
-        dossieBody.data.conteudo.split('base64')[1].slice(1),
-      );
-
-      const paginaDosprevFormatada = new JSDOM(dosprevCriptografado);
-      const testeee = getXPathText(
-        paginaDosprevFormatada,
-        '/html/body/div/p[2]/b',
-      ); */
     } catch (e) {
       throw new Error('ERRO AO FAZER A TRIAGEM SAPIENS');
     }
