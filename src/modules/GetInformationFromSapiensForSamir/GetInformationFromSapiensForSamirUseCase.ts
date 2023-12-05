@@ -8,7 +8,7 @@ import { getTarefaUseCase } from '../GetTarefa';
 import { ResponseProcess } from '../SapiensOperations/Response/ResponseProcess';
 import { getPastaUseCase } from '../GetPasta';
 import { ResponseFolder } from '../SapiensOperations/Response/ResponseFolder';
-import { payloadUploadObservacao } from '../SapiensOperations/RequestPayload';
+import { uploudObservacaoUseCase } from '../UploudObservacao';
 
 export class GetInformationFromSapiensForSamirUseCase {
   async execute(
@@ -37,13 +37,15 @@ export class GetInformationFromSapiensForSamirUseCase {
 
         const objetoDosprev =
           getArvoreDocumento[0].documento.componentesDigitais.length > 0;
-        console.log(
-          await payloadUploadObservacao.execute(
+
+        if (!objetoDosprev) {
+          await uploudObservacaoUseCase.execute(
             [ProcessSapiens[0]],
-            observacao_sapiens,
-          ),
-        );
-        console.log(objetoDosprev);
+            'DOSPREV COM FALHA NA PESQUISA',
+            token,
+          );
+        }
+
         return ProcessSapiens[i];
       }
 
