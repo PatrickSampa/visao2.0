@@ -8,6 +8,7 @@ import { getTarefaUseCase } from '../GetTarefa';
 import { ResponseProcess } from '../SapiensOperations/Response/ResponseProcess';
 import { getPastaUseCase } from '../GetPasta';
 import { ResponseFolder } from '../SapiensOperations/Response/ResponseFolder';
+import { payloadUploadObservacao } from '../SapiensOperations/RequestPayload';
 
 export class GetInformationFromSapiensForSamirUseCase {
   async execute(
@@ -36,8 +37,14 @@ export class GetInformationFromSapiensForSamirUseCase {
 
         const objetoDosprev =
           getArvoreDocumento[0].documento.componentesDigitais.length > 0;
-        console.log(getArvoreDocumento[0]);
-        return objetoDosprev;
+        console.log(
+          await payloadUploadObservacao.execute(
+            [ProcessSapiens[0]],
+            observacao_sapiens,
+          ),
+        );
+        console.log(objetoDosprev);
+        return ProcessSapiens[i];
       }
 
       /* const idDossprev =
