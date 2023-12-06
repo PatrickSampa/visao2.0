@@ -39,7 +39,7 @@ export class GetInformationFromSapiensForSamirUseCase {
 
         if (getArvoreDocumento.length <= 0) {
           await uploudObservacaoUseCase.execute(
-            [ProcessSapiens[0]],
+            [ProcessSapiens[i]],
             'DOSPREV NÃO ENCONTRADO',
             token,
           );
@@ -57,7 +57,7 @@ export class GetInformationFromSapiensForSamirUseCase {
           Object.keys(objectDosPrevMaisAtual).length == 0
         ) {
           await uploudObservacaoUseCase.execute(
-            [ProcessSapiens[0]],
+            [ProcessSapiens[i]],
             'DOSPREV NÃO ENCONTRADO',
             token,
           );
@@ -66,7 +66,7 @@ export class GetInformationFromSapiensForSamirUseCase {
 
         if (objectDosPrevMaisAtual.documento.componentesDigitais.length <= 0) {
           await uploudObservacaoUseCase.execute(
-            [ProcessSapiens[0]],
+            [ProcessSapiens[i]],
             'DOSPREV COM FALHA NA PESQUISA',
             token,
           );
@@ -88,7 +88,7 @@ export class GetInformationFromSapiensForSamirUseCase {
         const informacaoDeCabecalhoNaoExiste = !informacaoDeCabeçalho;
         if (informacaoDeCabecalhoNaoExiste) {
           await uploudObservacaoUseCase.execute(
-            [ProcessSapiens[0]],
+            [ProcessSapiens[i]],
             'DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE',
             token,
           );
@@ -107,7 +107,7 @@ export class GetInformationFromSapiensForSamirUseCase {
           )
         ) {
           await uploudObservacaoUseCase.execute(
-            [ProcessSapiens[0]],
+            [ProcessSapiens[i]],
             'DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE',
             token,
           );
