@@ -11,6 +11,7 @@ import { ResponseFolder } from '../SapiensOperations/Response/ResponseFolder';
 import { uploudObservacaoUseCase } from '../UploudObservacao';
 import { uploadPaginaDosprevUseCase } from '../UploadPaginaDosprev';
 import { VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie } from '../../Help/VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie';
+import { getNewDosprevForSamirFromSuperSapies } from './GetNewDosprevForSamirFromSuperSapiens/index';
 
 export class GetInformationFromSapiensForSamirUseCase {
   async execute(
@@ -22,6 +23,8 @@ export class GetInformationFromSapiensForSamirUseCase {
       const token = await loginUserCase.execute({ username, password });
       const user_id = await getUserResponsibleIdUseCase.execute(token);
       const limit = 333;
+      let objetoDosprevFinal;
+      let verifyDosprevOld: boolean = false;
 
       const ProcessSapiens: ResponseProcess = await getTarefaUseCase.execute({
         user_id,
@@ -47,24 +50,64 @@ export class GetInformationFromSapiensForSamirUseCase {
         }
 
         const objectDosPrevMaisAtual = getArvoreDocumento.find((Documento) => {
-          const movimento = Documento.descricao.split('.');
+          const movimento = Documento?.descricao.split('.');
           return movimento[0] == 'JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF';
         });
 
-        if (
-          objectDosPrevMaisAtual == null ||
-          objectDosPrevMaisAtual == undefined ||
-          Object.keys(objectDosPrevMaisAtual).length == 0
-        ) {
+        const objetoAntigoDosprevMaisAtual = getArvoreDocumento.find(
+          (Documento) =>
+            Documento?.documento?.tipoDocumento?.sigla == 'DOSPREV',
+        );
+
+        if (!objectDosPrevMaisAtual && !objetoAntigoDosprevMaisAtual) {
           await uploudObservacaoUseCase.execute(
             [ProcessSapiens[i]],
             'DOSPREV NÃO ENCONTRADO',
             token,
           );
           continue;
+        } else if (objectDosPrevMaisAtual && !objetoAntigoDosprevMaisAtual) {
+          objetoDosprevFinal = objectDosPrevMaisAtual;
+        } else if (objetoAntigoDosprevMaisAtual && !objectDosPrevMaisAtual) {
+          objetoDosprevFinal = objetoAntigoDosprevMaisAtual;
+          verifyDosprevOld = true;
+        } else {
+          if (
+            objetoAntigoDosprevMaisAtual?.numeracaoSequencial != undefined &&
+            objectDosPrevMaisAtual?.numeracaoSequencial != undefined &&
+            objetoAntigoDosprevMaisAtual?.numeracaoSequencial >
+              objectDosPrevMaisAtual?.numeracaoSequencial
+          ) {
+            objetoDosprevFinal = objetoAntigoDosprevMaisAtual;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            verifyDosprevOld = true;
+          } else if (
+            objetoAntigoDosprevMaisAtual?.numeracaoSequencial != undefined &&
+            objectDosPrevMaisAtual?.numeracaoSequencial != undefined &&
+            objetoAntigoDosprevMaisAtual?.numeracaoSequencial <
+              objectDosPrevMaisAtual?.numeracaoSequencial
+          ) {
+            objetoDosprevFinal = objectDosPrevMaisAtual;
+          } else {
+            await uploudObservacaoUseCase.execute(
+              [ProcessSapiens[i]],
+              'DOSPREV COM FALHA NA LEITURA',
+              token,
+            );
+            continue;
+          }
         }
 
-        if (objectDosPrevMaisAtual.documento.componentesDigitais.length <= 0) {
+        if (Object.keys(objetoDosprevFinal).length == 0) {
+          await uploudObservacaoUseCase.execute(
+            [ProcessSapiens[i]],
+            'DOSPREV COM FALHA NA LEITURA',
+            token,
+          );
+          continue;
+        }
+
+        if (objetoDosprevFinal.documento.componentesDigitais.length <= 0) {
           await uploudObservacaoUseCase.execute(
             [ProcessSapiens[i]],
             'DOSPREV COM FALHA NA PESQUISA',
@@ -74,7 +117,7 @@ export class GetInformationFromSapiensForSamirUseCase {
         }
 
         const parginaDosprev = await uploadPaginaDosprevUseCase.execute(
-          objectDosPrevMaisAtual.documento.componentesDigitais[0].id,
+          objetoDosprevFinal.documento.componentesDigitais[0].id,
           token,
         );
 
@@ -85,11 +128,16 @@ export class GetInformationFromSapiensForSamirUseCase {
           xpaththInformacaoCabecalho,
         );
 
+        console.log(
+          await getNewDosprevForSamirFromSuperSapies.execute(
+            paginaDosprevFormatada,
+          ),
+        );
         const informacaoDeCabecalhoNaoExiste = !informacaoDeCabeçalho;
         if (informacaoDeCabecalhoNaoExiste) {
           await uploudObservacaoUseCase.execute(
             [ProcessSapiens[i]],
-            'DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE',
+            'DOSPREV FORA DO PRAZO DE VALIDADE',
             token,
           );
           continue;
@@ -108,13 +156,13 @@ export class GetInformationFromSapiensForSamirUseCase {
         ) {
           await uploudObservacaoUseCase.execute(
             [ProcessSapiens[i]],
-            'DOSPREV FORA DO PRAZO DO PRAZO DE VALIDADE',
+            'DOSPREV FORA DO PRAZO DE VALIDADE',
             token,
           );
           continue;
         }
 
-        return informacaoDeCabeçalho;
+        return objetoDosprevFinal;
       }
     } catch (e) {
       throw new Error('ERRO AO FAZER A TRIAGEM SAPIENS');
