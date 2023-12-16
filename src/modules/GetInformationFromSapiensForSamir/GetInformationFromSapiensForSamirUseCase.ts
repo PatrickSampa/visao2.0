@@ -11,6 +11,7 @@ import { ResponseFolder } from '../SapiensOperations/Response/ResponseFolder';
 import { uploudObservacaoUseCase } from '../UploudObservacao';
 import { uploadPaginaDosprevUseCase } from '../UploadPaginaDosprev';
 import { VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie } from '../../Help/VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie';
+import { coletarCitacao } from './Help/coletarCitacao';
 import { getNewDosprevForSamirFromSuperSapies } from './GetNewDosprevForSamirFromSuperSapiens/index';
 
 export class GetInformationFromSapiensForSamirUseCase {
@@ -39,7 +40,7 @@ export class GetInformationFromSapiensForSamirUseCase {
             limit,
             token,
           });
-
+        console.log(ProcessSapiens[i].processo.id);
         if (getArvoreDocumento.length <= 0) {
           await uploudObservacaoUseCase.execute(
             [ProcessSapiens[i]],
@@ -106,7 +107,7 @@ export class GetInformationFromSapiensForSamirUseCase {
           );
           continue;
         }
-
+        console.log('citacao ' + coletarCitacao(getArvoreDocumento));
         if (objetoDosprevFinal.documento.componentesDigitais.length <= 0) {
           await uploudObservacaoUseCase.execute(
             [ProcessSapiens[i]],
@@ -115,6 +116,8 @@ export class GetInformationFromSapiensForSamirUseCase {
           );
           continue;
         }
+        console.log(objetoDosprevFinal.id);
+        console.log(objetoDosprevFinal.documento.componentesDigitais[0].id);
 
         const parginaDosprev = await uploadPaginaDosprevUseCase.execute(
           objetoDosprevFinal.documento.componentesDigitais[0].id,
@@ -127,10 +130,18 @@ export class GetInformationFromSapiensForSamirUseCase {
           paginaDosprevFormatada,
           xpaththInformacaoCabecalho,
         );
-
+        const idDosprev = objetoDosprevFinal.id;
+        const idComponentesGigitais =
+          objetoDosprevFinal.documento.componentesDigitais[0].id;
+        const tarefaId = ProcessSapiens[i].id;
         console.log(
           await getNewDosprevForSamirFromSuperSapies.execute(
             paginaDosprevFormatada,
+            processo_id,
+            idDosprev,
+            idComponentesGigitais,
+            getArvoreDocumento,
+            tarefaId,
           ),
         );
         const informacaoDeCabecalhoNaoExiste = !informacaoDeCabeçalho;
@@ -142,11 +153,6 @@ export class GetInformationFromSapiensForSamirUseCase {
           );
           continue;
         }
-        console.log(
-          VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie(
-            informacaoDeCabeçalho,
-          ),
-        );
 
         if (
           0 >

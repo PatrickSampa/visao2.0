@@ -1,10 +1,10 @@
 export interface IBeneficiosDTO {
   dib: string | null;
   dcb?: string | null;
-  dip?: string;
+  dip?: string | null;
   beneficio: string | null;
-  rmi?: string;
+  rmi?: string | null;
   tipo?: string;
   nb?: string;
-  dibAnterior?: string;
+  dibAnterior?: string | null;
 }
