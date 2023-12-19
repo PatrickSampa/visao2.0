@@ -74,12 +74,8 @@ export class GetNewDosprevForSamirFromSuperSapies {
     let citacao = coletarCitacao(arrayDeDocumentos);
     if (!citacao) citacao = null;
 
-    if (!nome) throw new MinhaErroPersonalizado('DOSPREV COM FALHA NA LEITURA');
-    if (!dataAjuizamento)
+    if (!nome || !dataAjuizamento || !numeroDoProcesso || !cpf)
       throw new MinhaErroPersonalizado('DOSPREV COM FALHA NA LEITURA');
-    if (!numeroDoProcesso)
-      throw new MinhaErroPersonalizado('DOSPREV COM FALHA NA LEITURA');
-    if (!cpf) throw new MinhaErroPersonalizado('DOSPREV COM FALHA NA LEITURA');
     const id = Number(tarefaId);
 
     try {
