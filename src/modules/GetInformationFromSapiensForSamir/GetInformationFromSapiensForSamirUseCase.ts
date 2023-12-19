@@ -1,7 +1,7 @@
 //import axios from 'axios';
 import { getUserResponsibleIdUseCase } from '../GetUserResponsibleId';
 import { loginUserCase } from '../Login';
-import { getXPathText } from '../../Help/GetTextoPorXPATH';
+
 const { JSDOM } = require('jsdom');
 //import { decodeBase64FileWithHash } from '../../Help/teste';
 import { getTarefaUseCase } from '../GetTarefa';
@@ -10,7 +10,7 @@ import { getPastaUseCase } from '../GetPasta';
 import { ResponseFolder } from '../SapiensOperations/Response/ResponseFolder';
 import { uploudObservacaoUseCase } from '../UploudObservacao';
 import { uploadPaginaDosprevUseCase } from '../UploadPaginaDosprev';
-import { VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie } from '../../Help/VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie';
+
 import { coletarCitacao } from './Help/coletarCitacao';
 import { getNewDosprevForSamirFromSuperSapies } from './GetNewDosprevForSamirFromSuperSapiens/index';
 
@@ -116,20 +116,14 @@ export class GetInformationFromSapiensForSamirUseCase {
           );
           continue;
         }
-        console.log(objetoDosprevFinal.id);
-        console.log(objetoDosprevFinal.documento.componentesDigitais[0].id);
 
         const parginaDosprev = await uploadPaginaDosprevUseCase.execute(
           objetoDosprevFinal.documento.componentesDigitais[0].id,
           token,
         );
 
-        const xpaththInformacaoCabecalho = '/html/body/div/div[3]/p/strong';
         const paginaDosprevFormatada = new JSDOM(parginaDosprev);
-        const informacaoDeCabeçalho = getXPathText(
-          paginaDosprevFormatada,
-          xpaththInformacaoCabecalho,
-        );
+
         const idDosprev = objetoDosprevFinal.id;
         const idComponentesGigitais =
           objetoDosprevFinal.documento.componentesDigitais[0].id;
@@ -144,29 +138,6 @@ export class GetInformationFromSapiensForSamirUseCase {
             tarefaId,
           ),
         );
-        const informacaoDeCabecalhoNaoExiste = !informacaoDeCabeçalho;
-        if (informacaoDeCabecalhoNaoExiste) {
-          await uploudObservacaoUseCase.execute(
-            [ProcessSapiens[i]],
-            'DOSPREV FORA DO PRAZO DE VALIDADE',
-            token,
-          );
-          continue;
-        }
-
-        if (
-          0 >
-          VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie(
-            informacaoDeCabeçalho,
-          )
-        ) {
-          await uploudObservacaoUseCase.execute(
-            [ProcessSapiens[i]],
-            'DOSPREV FORA DO PRAZO DE VALIDADE',
-            token,
-          );
-          continue;
-        }
 
         return objetoDosprevFinal;
       }

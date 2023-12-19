@@ -12,7 +12,7 @@ export async function fazerInformationsForCalculeDTO(
   nome: string,
   cpf: string,
   urlProcesso: string,
-  citacao: string,
+  citacao: string | null,
   id: number,
 ): Promise<IInformationsForCalculeDTO> {
   let result: IInformationsForCalculeDTO = {
@@ -61,6 +61,18 @@ function preencherBeneficioPrincipal(
   result: IInformationsForCalculeDTO,
   beneficio: IBeneficiosDTO,
 ): IInformationsForCalculeDTO {
+  if (
+    !beneficio.beneficio ||
+    !beneficio.dip ||
+    !beneficio.dib ||
+    !beneficio.dcb ||
+    !beneficio.dibAnterior ||
+    !beneficio.rmi ||
+    !beneficio.nb ||
+    !beneficio.tipo
+  )
+    throw new Error('SAPIENS COM FALHA NA LEITURA');
+
   result.beneficio = beneficio.beneficio;
   result.dip = beneficio.dip;
   result.dibInicial = beneficio.dib;
@@ -77,6 +89,16 @@ async function converterArrayDeBenefiosParaArrayDeBeneficiosAcumulados(
 ): Promise<IBeneficiosAcumuladoForCalculeDTO[]> {
   const beneficiosAcumulados: IBeneficiosAcumuladoForCalculeDTO[] = [];
   for (const beneficio of beneficios) {
+    if (
+      !beneficio.dib ||
+      !beneficio.dcb ||
+      !beneficio.beneficio ||
+      !beneficio.rmi ||
+      !beneficio.nb ||
+      !beneficio.dibAnterior
+    )
+      throw new Error('SAPIENS COM FALHA NA LEITURA');
+
     if (
       (convertToDate(beneficioPrincipal.dibInicial) <=
         convertToDate(beneficio.dib) &&

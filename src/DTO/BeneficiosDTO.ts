@@ -5,6 +5,6 @@ export interface IBeneficiosDTO {
   beneficio: string | null;
   rmi?: string | null;
   tipo?: string;
-  nb?: string;
+  nb?: string | null;
   dibAnterior?: string | null;
 }

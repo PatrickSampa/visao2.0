@@ -13,7 +13,7 @@ export interface IInformationsForCalculeDTO {
   nb: string;
   dip: string;
   aps?: string;
-  citacao?: string;
+  citacao?: string | null;
   beneficiosAcumulados?: IBeneficiosAcumuladoForCalculeDTO[];
   urlProcesso: string;
   dibAnterior: string;
