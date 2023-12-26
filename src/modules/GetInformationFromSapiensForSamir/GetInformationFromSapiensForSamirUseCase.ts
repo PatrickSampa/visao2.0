@@ -13,6 +13,9 @@ import { uploadPaginaDosprevUseCase } from '../UploadPaginaDosprev';
 
 import { coletarCitacao } from './Help/coletarCitacao';
 import { getNewDosprevForSamirFromSuperSapies } from './GetNewDosprevForSamirFromSuperSapiens/index';
+import { IInformationsForCalculeDTO } from '../../DTO/InformationsForCalculeDTO';
+import { MinhaErroPersonalizado } from '../../Help/ErroMessage';
+import { getOldDosprevForSamirFromSuperSapiens } from './GetOldDosprevForSamirFromSuperSapiens';
 
 export class GetInformationFromSapiensForSamirUseCase {
   async execute(
@@ -20,12 +23,13 @@ export class GetInformationFromSapiensForSamirUseCase {
     password: string,
     observacao_sapiens: string,
   ): Promise<string | null | unknown> {
+    const response: Array<IInformationsForCalculeDTO> = [];
     try {
       const token = await loginUserCase.execute({ username, password });
       const user_id = await getUserResponsibleIdUseCase.execute(token);
       const limit = 333;
       let objetoDosprevFinal;
-      let verifyDosprevOld: boolean = false;
+      let verifyDosprevOld = false;
 
       const ProcessSapiens: ResponseProcess = await getTarefaUseCase.execute({
         user_id,
@@ -128,21 +132,149 @@ export class GetInformationFromSapiensForSamirUseCase {
         const idComponentesGigitais =
           objetoDosprevFinal.documento.componentesDigitais[0].id;
         const tarefaId = ProcessSapiens[i].id;
-        console.log(
-          await getNewDosprevForSamirFromSuperSapies.execute(
-            paginaDosprevFormatada,
-            processo_id,
-            idDosprev,
-            idComponentesGigitais,
-            getArvoreDocumento,
-            tarefaId,
-          ),
-        );
 
-        return objetoDosprevFinal;
+        if (!verifyDosprevOld) {
+          try {
+            const informationForCalcule: IInformationsForCalculeDTO =
+              await getNewDosprevForSamirFromSuperSapies.execute(
+                paginaDosprevFormatada,
+                processo_id,
+                idDosprev,
+                idComponentesGigitais,
+                getArvoreDocumento,
+                tarefaId,
+              );
+            response.push(informationForCalcule);
+            await uploudObservacaoUseCase.execute(
+              [ProcessSapiens[i]],
+              'LIDO BOOT',
+              token,
+            );
+          } catch (e) {
+            if (
+              e instanceof MinhaErroPersonalizado &&
+              e.message == 'DOSPREV FORA DO PRAZO DE VALIDADE'
+            ) {
+              await uploudObservacaoUseCase.execute(
+                [ProcessSapiens[i]],
+                'DOSPREV FORA DO PRAZO DE VALIDADE',
+                token,
+              );
+              continue;
+            }
+
+            if (
+              e instanceof MinhaErroPersonalizado &&
+              e.message == 'DOSPREV SEM BENEFICIO VALIDOS'
+            ) {
+              await uploudObservacaoUseCase.execute(
+                [ProcessSapiens[i]],
+                'DOSPREV SEM BENEFICIO VALIDOS',
+                token,
+              );
+              continue;
+            }
+
+            if (
+              e instanceof MinhaErroPersonalizado &&
+              e.message == 'DOSPREV COM FALHA NA LEITURA'
+            ) {
+              await uploudObservacaoUseCase.execute(
+                [ProcessSapiens[i]],
+                'DOSPREV COM FALHA NA LEITURA',
+                token,
+              );
+              continue;
+            }
+
+            if (
+              e instanceof MinhaErroPersonalizado &&
+              e.message == 'FALHA NA LEITURA DOS BENEFICIOS'
+            ) {
+              await uploudObservacaoUseCase.execute(
+                [ProcessSapiens[i]],
+                'FALHA NA LEITURA DOS BENEFICIOS',
+                token,
+              );
+              continue;
+            }
+          }
+        } else {
+          try {
+            const informationForCalcule: IInformationsForCalculeDTO =
+              await getOldDosprevForSamirFromSuperSapiens.execute(
+                paginaDosprevFormatada,
+                processo_id,
+                idDosprev,
+                idComponentesGigitais,
+                getArvoreDocumento,
+                tarefaId,
+              );
+            response.push(informationForCalcule);
+            await uploudObservacaoUseCase.execute(
+              [ProcessSapiens[i]],
+              'LIDO BOOT',
+              token,
+            );
+          } catch (e) {
+            if (
+              e instanceof MinhaErroPersonalizado &&
+              e.message == 'DOSPREV FORA DO PRAZO DE VALIDADE'
+            ) {
+              await uploudObservacaoUseCase.execute(
+                [ProcessSapiens[i]],
+                'DOSPREV FORA DO PRAZO DE VALIDADE',
+                token,
+              );
+              continue;
+            }
+
+            if (
+              e instanceof MinhaErroPersonalizado &&
+              e.message == 'DOSPREV SEM BENEFICIO VALIDOS'
+            ) {
+              await uploudObservacaoUseCase.execute(
+                [ProcessSapiens[i]],
+                'DOSPREV SEM BENEFICIO VALIDOS',
+                token,
+              );
+              continue;
+            }
+
+            if (
+              e instanceof MinhaErroPersonalizado &&
+              e.message == 'DOSPREV COM FALHA NA LEITURA'
+            ) {
+              await uploudObservacaoUseCase.execute(
+                [ProcessSapiens[i]],
+                'DOSPREV COM FALHA NA LEITURA',
+                token,
+              );
+              continue;
+            }
+
+            if (
+              e instanceof MinhaErroPersonalizado &&
+              e.message == 'FALHA NA LEITURA DOS BENEFICIOS'
+            ) {
+              await uploudObservacaoUseCase.execute(
+                [ProcessSapiens[i]],
+                'FALHA NA LEITURA DOS BENEFICIOS',
+                token,
+              );
+              continue;
+            }
+          }
+        }
       }
+
+      return response;
     } catch (e) {
-      throw new Error('ERRO AO FAZER A TRIAGEM SAPIENS');
+      if (response.length > 0) {
+        return response;
+      } else {
+        throw new Error('ERRO AO FAZER A TRIAGEM SAPIENS');
+      }
     }
   }
 }

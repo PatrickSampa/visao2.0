@@ -7,6 +7,7 @@ import { coletarCitacao } from '../Help/coletarCitacao';
 import { fazerInformationsForCalculeDTO } from '../Help/contruirInformationsForCalcule';
 import { getInformaçoesIniciasDosBeneficiosSuperDosprev } from '../Help/getInformaçoesIniciasDosBeneficiosSuperDosprev';
 import { getInformaçoesSecudariaDosBeneficiosSuperDossie } from '../Help/getInformaçoesSecudariaDosBeneficiosSuperDossie';
+import { isValidInformationsForCalculeDTO } from '../Help/validadorDeInformationsForCalculeDTO';
 
 export class GetNewDosprevForSamirFromSuperSapies {
   async execute(
@@ -90,7 +91,11 @@ export class GetNewDosprevForSamirFromSuperSapies {
           citacao,
           id,
         );
-      return informationsForCalculeDTO;
+      if (isValidInformationsForCalculeDTO(informationsForCalculeDTO)) {
+        return informationsForCalculeDTO;
+      } else {
+        throw new MinhaErroPersonalizado('FALHA NA LEITURA DOS BENEFICIOS');
+      }
     } catch (e) {
       throw new MinhaErroPersonalizado('FALHA NA LEITURA DOS BENEFICIOS');
     }
