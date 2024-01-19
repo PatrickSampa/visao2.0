@@ -7,6 +7,7 @@ export class GetTarefaUseCase {
     const { user_id, observacao_sapiens } = data;
     const URL = await requestUrlTarefa.execute(user_id, observacao_sapiens);
     const tarefas = await requisitiosAxios.execute(data.token, URL);
+    //console.log(tarefas.entities.length)
     return tarefas.entities;
   }
 }

@@ -16,6 +16,7 @@ import { getNewDosprevForSamirFromSuperSapies } from './GetNewDosprevForSamirFro
 import { IInformationsForCalculeDTO } from '../../DTO/InformationsForCalculeDTO';
 import { MinhaErroPersonalizado } from '../../Help/ErroMessage';
 import { getOldDosprevForSamirFromSuperSapiens } from './GetOldDosprevForSamirFromSuperSapiens';
+import { getNumberProcess } from './GetNumberProcess';
 
 export class GetInformationFromSapiensForSamirUseCase {
   async execute(
@@ -30,12 +31,16 @@ export class GetInformationFromSapiensForSamirUseCase {
       const limit = 333;
       let objetoDosprevFinal;
       let verifyDosprevOld = false;
-
+      
       const ProcessSapiens: ResponseProcess = await getTarefaUseCase.execute({
         user_id,
         observacao_sapiens,
         token,
       });
+
+      const quantProcess = await getNumberProcess.execute(user_id, token);
+
+
       for (let i = 0; i <= ProcessSapiens.length - 1; i++) {
         const processo_id = ProcessSapiens[i].processo.id;
         const getArvoreDocumento: ResponseFolder =
@@ -44,7 +49,7 @@ export class GetInformationFromSapiensForSamirUseCase {
             limit,
             token,
           });
-        console.log(ProcessSapiens[i].processo.id);
+        
         if (getArvoreDocumento.length <= 0) {
           await uploudObservacaoUseCase.execute(
             [ProcessSapiens[i]],
@@ -111,7 +116,7 @@ export class GetInformationFromSapiensForSamirUseCase {
           );
           continue;
         }
-        console.log('citacao ' + coletarCitacao(getArvoreDocumento));
+       
         if (objetoDosprevFinal.documento.componentesDigitais.length <= 0) {
           await uploudObservacaoUseCase.execute(
             [ProcessSapiens[i]],
