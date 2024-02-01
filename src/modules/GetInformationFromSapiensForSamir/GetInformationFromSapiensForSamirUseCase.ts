@@ -20,13 +20,13 @@ import { getNumberProcess } from './GetNumberProcess';
 
 export class GetInformationFromSapiensForSamirUseCase {
   async execute(
-    username: string,
+    email: string,
     password: string,
     observacao_sapiens: string,
   ): Promise<string | null | unknown> {
     const response: Array<IInformationsForCalculeDTO> = [];
     try {
-      const token = await loginUserCase.execute({ username, password });
+      const token = await loginUserCase.execute({ email, password });
       const user_id = await getUserResponsibleIdUseCase.execute(token);
       const limit = 333;
       let objetoDosprevFinal;

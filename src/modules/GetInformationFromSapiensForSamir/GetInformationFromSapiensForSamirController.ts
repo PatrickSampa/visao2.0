@@ -8,7 +8,6 @@ export class GetInformationFromSapiensForSamirController {
 
   async handle(request: Request, response: Response): Promise<Response> {
     const { email, password, observacao_sapiens } = request.body;
-
     try {
       const responseInfo =
         await this.getInformationFromSapiensForSamirUseCase.execute(
