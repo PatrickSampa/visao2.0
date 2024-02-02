@@ -59,6 +59,7 @@ export class GetInformationFromSapiensForSamirUseCase {
           continue;
         }
 
+        //REFATORAR CODIGO PARA DIMINUIR LOOP
         const objectDosPrevMaisAtual = getArvoreDocumento.find((Documento) => {
           const movimento = Documento?.descricao.split('.');
           return movimento[0] == 'JUNTADA DOSSIE DOSSIE PREVIDENCIARIO REF';
