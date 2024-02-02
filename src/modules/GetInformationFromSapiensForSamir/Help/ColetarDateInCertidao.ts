@@ -15,9 +15,18 @@ export async function coletarDateInCertidao(arrayDeDocument: ResponseFolder) {
       break;
     }
   }
-  if (!numeroCertidao) return null;
+  if (
+    !numeroCertidao ||
+    arrayDeDocument[numeroCertidao + 1].documento.tipoDocumento.descricao !=
+      'CERTIDÃO'
+  )
+    return null;
 
-  return arrayDeDocument[numeroCertidao + 1].documento.dataHoraProducao
-    .split(' ')[0]
-    .split('-');
+  if (
+    arrayDeDocument[numeroCertidao + 1].documento.tipoDocumento.descricao ==
+    'CERTIDÃO'
+  )
+    return arrayDeDocument[numeroCertidao + 1].documento.dataHoraProducao
+      .split(' ')[0]
+      .split('-');
 }
