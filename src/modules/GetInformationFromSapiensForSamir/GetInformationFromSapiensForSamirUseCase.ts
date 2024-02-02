@@ -11,12 +11,13 @@ import { ResponseFolder } from '../SapiensOperations/Response/ResponseFolder';
 import { uploudObservacaoUseCase } from '../UploudObservacao';
 import { uploadPaginaDosprevUseCase } from '../UploadPaginaDosprev';
 
-import { coletarCitacao } from './Help/coletarCitacao';
+//import { coletarCitacao } from './Help/coletarCitacao';
 import { getNewDosprevForSamirFromSuperSapies } from './GetNewDosprevForSamirFromSuperSapiens/index';
 import { IInformationsForCalculeDTO } from '../../DTO/InformationsForCalculeDTO';
 import { MinhaErroPersonalizado } from '../../Help/ErroMessage';
 import { getOldDosprevForSamirFromSuperSapiens } from './GetOldDosprevForSamirFromSuperSapiens';
-import { getNumberProcess } from './GetNumberProcess';
+import { coletarDateInCertidao } from './Help/ColetarDateInCertidao';
+//import { getNumberProcess } from './GetNumberProcess';
 
 export class GetInformationFromSapiensForSamirUseCase {
   async execute(
@@ -31,15 +32,14 @@ export class GetInformationFromSapiensForSamirUseCase {
       const limit = 333;
       let objetoDosprevFinal;
       let verifyDosprevOld = false;
-      
+
       const ProcessSapiens: ResponseProcess = await getTarefaUseCase.execute({
         user_id,
         observacao_sapiens,
         token,
       });
 
-      const quantProcess = await getNumberProcess.execute(user_id, token);
-
+      //const quantProcess = await getNumberProcess.execute(user_id, token);
 
       for (let i = 0; i <= ProcessSapiens.length - 1; i++) {
         const processo_id = ProcessSapiens[i].processo.id;
@@ -49,7 +49,7 @@ export class GetInformationFromSapiensForSamirUseCase {
             limit,
             token,
           });
-        
+        console.log(await coletarDateInCertidao(getArvoreDocumento));
         if (getArvoreDocumento.length <= 0) {
           await uploudObservacaoUseCase.execute(
             [ProcessSapiens[i]],
@@ -116,7 +116,14 @@ export class GetInformationFromSapiensForSamirUseCase {
           );
           continue;
         }
-       
+        if (!objetoDosprevFinal.documento.componentesDigitais) {
+          await uploudObservacaoUseCase.execute(
+            [ProcessSapiens[i]],
+            'DOSPREV COM FALHA NA PESQUISA',
+            token,
+          );
+          continue;
+        }
         if (objetoDosprevFinal.documento.componentesDigitais.length <= 0) {
           await uploudObservacaoUseCase.execute(
             [ProcessSapiens[i]],
@@ -125,7 +132,7 @@ export class GetInformationFromSapiensForSamirUseCase {
           );
           continue;
         }
-
+        console.log('QSDIDHIASUDHASJKDHADKJSHDKJ');
         const parginaDosprev = await uploadPaginaDosprevUseCase.execute(
           objetoDosprevFinal.documento.componentesDigitais[0].id,
           token,
