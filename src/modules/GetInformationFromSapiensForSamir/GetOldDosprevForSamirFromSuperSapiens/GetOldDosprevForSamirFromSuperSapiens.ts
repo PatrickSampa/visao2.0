@@ -3,6 +3,7 @@ import { MinhaErroPersonalizado } from '../../../Help/ErroMessage';
 import { getXPathText } from '../../../Help/GetTextoPorXPATH';
 import { VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie } from '../../../Help/VerificaçaoDaQuantidadeDeDiasParaInspirarOSuperDossie';
 import { ResponseFolder } from '../../SapiensOperations/Response/ResponseFolder';
+import { coletarDateInCertidao } from '../Help/ColetarDateInCertidao';
 import { coletarCitacao } from '../Help/coletarCitacao';
 import { fazerInformationsForCalculeDTO } from '../Help/contruirInformationsForCalcule';
 import { getInformaçoesIniciasDosBeneficios } from '../Help/getInformaçoesIniciasDosBeneficios';
@@ -70,6 +71,7 @@ export class GetOldDosprevForSamirFromSuperSapiens {
 
     let citacao = coletarCitacao(arrayDeDocumentos);
     if (!citacao) citacao = null;
+    console.log(coletarDateInCertidao(arrayDeDocumentos))
 
     if (!nome || !dataAjuizamento || !numeroDoProcesso || !cpf)
       throw new MinhaErroPersonalizado('DOSPREV COM FALHA NA LEITURA');

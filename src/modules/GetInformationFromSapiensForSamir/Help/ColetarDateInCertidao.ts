@@ -1,6 +1,6 @@
 import { ResponseFolder } from '../../SapiensOperations/Response/ResponseFolder';
 
-export async function coletarDateInCertidao(arrayDeDocument: ResponseFolder) {
+export async function coletarDateInCertidao(arrayDeDocument: ResponseFolder): Promise<string[] | null | undefined> {
   let numeroCertidao;
 
   for (let i = arrayDeDocument.length - 1; i >= 0; i--) {
